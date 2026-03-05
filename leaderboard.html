@@ -447,7 +447,20 @@ async function sbGet(path){
 
 async function loadData(){
   setLoader(20);
-  const rows=await sbGet('/rest/v1/scores?select=*&order=day,rank');
+
+  // NOTE: Supabase REST limits responses to 1000 rows per request.
+  // Our competition has more rows than that once multiple days are uploaded,
+  // so we fetch each day separately (max 27 days) and merge in memory.
+  const MAX_DAYS = 27;
+  const dayPromises = [];
+  for (let d = 1; d <= MAX_DAYS; d++) {
+    dayPromises.push(sbGet(`/rest/v1/scores?select=*&day=eq.${d}&order=day,rank`));
+  }
+  const dayResults = await Promise.all(dayPromises);
+  const rows = dayResults
+    .filter(arr => Array.isArray(arr) && arr.length > 0)
+    .flat();
+
   setLoader(60);
   if(!rows||rows.error||rows.length===0){
     hideLoader();
