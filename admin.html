@@ -329,14 +329,34 @@ async function doUpload() {
 
 // ── DAYS STATUS ──
 async function loadDaysStatus() {
-  const res = await sbFetch('/rest/v1/scores?select=day&order=day');
-  if (!res.ok) { document.getElementById('daysLoaded').innerHTML = '<span style="color:var(--red)">Could not connect to database</span>'; return; }
-  const days = [...new Set(res.data.map(r => r.day))].sort((a, b) => a - b);
-  if (days.length === 0) {
-    document.getElementById('daysLoaded').innerHTML = '<span style="color:var(--muted);font-size:12px">No data yet</span>';
-    return;
+  const MAX_DAYS = 27;
+
+  try {
+    // Fetch per-day to avoid the 1000-row-per-request limit on Supabase REST.
+    const dayPromises = [];
+    for (let d = 1; d <= MAX_DAYS; d++) {
+      dayPromises.push(sbFetch(`/rest/v1/scores?select=day&day=eq.${d}`));
+    }
+    const results = await Promise.all(dayPromises);
+
+    const days = [];
+    results.forEach((res, idx) => {
+      if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+        days.push(idx + 1);
+      }
+    });
+
+    if (days.length === 0) {
+      document.getElementById('daysLoaded').innerHTML = '<span style="color:var(--muted);font-size:12px">No data yet</span>';
+      return;
+    }
+    document.getElementById('daysLoaded').innerHTML = days
+      .sort((a, b) => a - b)
+      .map(d => `<span class="day-chip">Day ${d}</span>`)
+      .join('');
+  } catch (e) {
+    document.getElementById('daysLoaded').innerHTML = '<span style="color:var(--red)">Could not connect to database</span>';
   }
-  document.getElementById('daysLoaded').innerHTML = days.map(d => `<span class="day-chip">Day ${d}</span>`).join('');
 }
 
 // ── DELETE DAY ──
