@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramadan Quiz Championship 1446H</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Literata:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root {
+  --cream:#faf6ef; --cream2:#f3ede2; --cream3:#ede4d3; --parchment:#e8dcc8;
+  --gold:#b8860b; --gold2:#d4a017; --gold3:#f0c040;
+  --gold-light:rgba(184,134,11,0.1); --gold-mid:rgba(184,134,11,0.2);
+  --green:#2d6a4f; --green2:#40916c; --green3:#74c69d;
+  --green-light:rgba(45,106,79,0.1);
+  --rust:#9b2226;
+  --ink:#1a1208; --ink2:#3d2f1a;
+  --muted:#8a7a62; --muted2:#b5a48a;
+  --border:rgba(184,134,11,0.18); --border2:rgba(184,134,11,0.32);
+  --shadow:rgba(26,18,8,0.07); --shadow2:rgba(26,18,8,0.14);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--cream);color:var(--ink);font-family:'Literata',Georgia,serif;min-height:100vh;overflow-x:hidden;}
+
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.03;
+  background-image:
+    repeating-linear-gradient(0deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 60px),
+    repeating-linear-gradient(90deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 60px),
+    repeating-linear-gradient(45deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 42px),
+    repeating-linear-gradient(-45deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 42px);
+}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.45;}
+.site{position:relative;z-index:1;}
+.wrap{max-width:1100px;margin:0 auto;padding:0 22px;}
+
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:9999;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity 0.7s;}
+#loader.hide{opacity:0;pointer-events:none;}
+.loader-crescent{font-size:56px;animation:sway 2s ease-in-out infinite;filter:drop-shadow(0 4px 12px rgba(184,134,11,0.3));}
+@keyframes sway{0%,100%{transform:rotate(-8deg);}50%{transform:rotate(8deg);}}
+.loader-title{font-family:'Amiri',serif;font-size:22px;color:var(--gold);letter-spacing:1px;}
+.loader-bar{width:180px;height:3px;background:var(--cream3);border-radius:2px;overflow:hidden;}
+.loader-prog{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold3));width:0%;transition:width 0.4s;border-radius:2px;}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;background:rgba(250,246,239,0.96);border-bottom:2px solid var(--border2);backdrop-filter:blur(20px);box-shadow:0 2px 20px var(--shadow);}
+header::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent 0%,var(--gold3) 15%,var(--gold) 30%,var(--gold3) 50%,var(--gold) 70%,var(--gold3) 85%,transparent 100%);opacity:0.55;}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 22px;max-width:1100px;margin:0 auto;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-emblem{width:46px;height:46px;flex-shrink:0;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(184,134,11,0.28),inset 0 1px 0 rgba(255,255,255,0.3);}
+.brand h1{font-family:'Amiri',serif;font-size:clamp(16px,2.5vw,22px);font-weight:700;color:var(--ink);letter-spacing:0.3px;line-height:1.2;}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:2.5px;text-transform:uppercase;margin-top:2px;font-style:italic;}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.prog-pill{background:var(--gold-light);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:11.5px;color:var(--gold);display:flex;align-items:center;gap:8px;}
+.prog-bar{width:55px;height:3px;background:var(--cream3);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold3));border-radius:2px;transition:width 0.8s ease;}
+.live-dot{width:7px;height:7px;background:var(--green2);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);}}
+
+/* HERO */
+.hero{padding:52px 0 36px;text-align:center;}
+.hero::before{content:'✦  ✦  ✦';display:block;font-size:14px;color:var(--gold2);letter-spacing:12px;margin-bottom:16px;opacity:0.55;}
+.hero-arabic{font-family:'Amiri',serif;font-size:clamp(14px,2vw,18px);color:var(--muted);margin-bottom:10px;letter-spacing:2px;direction:rtl;}
+.hero-title{font-family:'Amiri',serif;font-size:clamp(38px,6vw,68px);font-weight:700;color:var(--ink);line-height:1.1;margin-bottom:8px;text-shadow:0 2px 8px rgba(26,18,8,0.06);}
+.hero-title span{color:var(--gold);}
+.hero-sub{font-size:14px;color:var(--muted);font-style:italic;margin-bottom:20px;}
+.hero-divider{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 auto;max-width:400px;opacity:0.4;}
+.hero-divider::before,.hero-divider::after{content:'';flex:1;height:1px;}
+.hero-divider::before{background:linear-gradient(90deg,transparent,var(--gold));}
+.hero-divider::after{background:linear-gradient(90deg,var(--gold),transparent);}
+.hero-divider span{font-size:18px;color:var(--gold2);}
+
+/* SECTION HEADERS */
+.sec-head{text-align:center;margin-bottom:24px;}
+.sec-title{font-family:'Amiri',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.sec-sub{font-size:12px;color:var(--muted);font-style:italic;}
+.ornament{color:var(--gold2);margin:0 8px;}
+.divider{display:flex;align-items:center;gap:16px;margin:8px 0 32px;opacity:0.4;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border2);}
+.divider span{font-size:16px;color:var(--gold2);}
+
+/* STATS STRIP */
+.stats-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:40px;}
+.stat-card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:0 2px 12px var(--shadow);position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px var(--shadow2);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold3));}
+.stat-l{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.stat-v{font-family:'DM Mono',monospace;font-size:30px;color:var(--gold);margin:4px 0 2px;font-weight:500;}
+.stat-s{font-size:10.5px;color:var(--muted2);font-style:italic;}
+
+/* PODIUM */
+.podium-wrap{background:white;border:1px solid var(--border);border-radius:20px;padding:32px 24px 24px;margin-bottom:40px;box-shadow:0 4px 24px var(--shadow);position:relative;overflow:hidden;}
+.podium-wrap::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(240,192,64,0.04) 0%,transparent 60%);pointer-events:none;}
+.podium-3d{display:flex;align-items:flex-end;justify-content:center;gap:16px;perspective:1000px;}
+.p-block{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+.p-block:hover{transform:translateY(-6px) scale(1.02);}
+.p-card{border-radius:16px;padding:20px 14px 16px;text-align:center;width:200px;border:1px solid transparent;position:relative;overflow:hidden;transition:box-shadow 0.3s;}
+.g1 .p-card{background:linear-gradient(160deg,#fffbf0,#fef3cc);border-color:rgba(184,134,11,0.4);box-shadow:0 8px 32px rgba(184,134,11,0.2),0 2px 8px rgba(26,18,8,0.07);}
+.g2 .p-card{background:linear-gradient(160deg,#f8f9fa,#edf0f4);border-color:rgba(150,160,180,0.4);box-shadow:0 6px 20px rgba(100,120,150,0.1);}
+.g3 .p-card{background:linear-gradient(160deg,#fdf5ee,#f5e6d3);border-color:rgba(180,110,50,0.35);box-shadow:0 6px 20px rgba(180,110,50,0.1);}
+.p-medal{font-size:38px;margin-bottom:6px;}
+.p-pos{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.p-name{font-family:'Amiri',serif;font-size:17px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:3px;}
+.p-college{font-size:10px;color:var(--muted);margin-bottom:12px;line-height:1.4;font-style:italic;}
+.p-pts{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;}
+.g1 .p-pts{color:var(--gold);} .g2 .p-pts{color:#5a6a80;} .g3 .p-pts{color:#8b5a2b;}
+.p-ptslbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.p-plinth{width:190px;border-radius:0 0 8px 8px;}
+.g1 .p-plinth{height:44px;background:linear-gradient(180deg,rgba(184,134,11,0.18),rgba(184,134,11,0.03));border-bottom:2px solid rgba(184,134,11,0.38);}
+.g2 .p-plinth{height:26px;background:linear-gradient(180deg,rgba(100,120,150,0.1),transparent);border-bottom:2px solid rgba(100,120,150,0.22);}
+.g3 .p-plinth{height:16px;background:linear-gradient(180deg,rgba(180,110,50,0.08),transparent);border-bottom:2px solid rgba(180,110,50,0.2);}
+
+/* HALL OF FAME */
+.hof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:40px;}
+.hof-card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;box-shadow:0 2px 14px var(--shadow);transition:transform 0.2s,box-shadow 0.2s;position:relative;overflow:hidden;}
+.hof-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px var(--shadow2);}
+.hof-card::after{content:'';position:absolute;top:0;left:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
+.hof-gold::after{background:linear-gradient(180deg,var(--gold3),var(--gold));}
+.hof-silver::after{background:linear-gradient(180deg,#d0d8e8,#8090a8);}
+.hof-bronze::after{background:linear-gradient(180deg,#e8c090,#a06030);}
+.hof-green::after{background:linear-gradient(180deg,var(--green3),var(--green));}
+.hof-fast::after{background:linear-gradient(180deg,#74c6c6,#2d6a6a);}
+.hof-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.hof-icon{font-size:26px;}
+.hof-title{font-family:'Amiri',serif;font-size:17px;font-weight:700;color:var(--ink);}
+.hof-desc{font-size:11px;color:var(--muted);font-style:italic;margin-top:1px;}
+.hof-list{display:flex;flex-direction:column;gap:7px;}
+.hof-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:var(--cream);border:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+.hof-item:hover{background:var(--cream2);}
+.hof-rank{font-family:'DM Mono',monospace;font-size:13px;width:26px;text-align:center;flex-shrink:0;color:var(--muted);}
+.hof-rank.r1{color:var(--gold);font-weight:700;} .hof-rank.r2{color:#5a6a80;} .hof-rank.r3{color:#8b5a2b;}
+.hof-name{font-size:13px;font-weight:600;color:var(--ink);flex:1;line-height:1.3;}
+.hof-college{font-size:10px;color:var(--muted);font-style:italic;}
+.hof-count{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;flex-shrink:0;background:var(--gold-light);color:var(--gold);border:1px solid var(--border);border-radius:20px;padding:2px 10px;}
+.hof-count.green{background:var(--green-light);color:var(--green);border-color:rgba(45,106,79,0.22);}
+.hof-count.teal{background:rgba(45,106,106,0.08);color:#2d6a6a;border-color:rgba(45,106,106,0.2);}
+.fastest-display{background:linear-gradient(135deg,rgba(45,106,106,0.06),rgba(45,106,79,0.04));border:1px solid rgba(45,106,106,0.18);border-radius:12px;padding:16px;}
+.fastest-name{font-family:'Amiri',serif;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:3px;}
+.fastest-college{font-size:11px;color:var(--muted);font-style:italic;margin-bottom:12px;}
+.fastest-time{font-family:'DM Mono',monospace;font-size:32px;color:#2d6a6a;font-weight:500;line-height:1;}
+.fastest-lbl{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.fastest-meta{font-size:11px;color:var(--muted2);margin-top:10px;font-style:italic;}
+.fastest-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(45,106,106,0.08);border:1px solid rgba(45,106,106,0.2);border-radius:20px;padding:3px 12px;font-size:11px;color:#2d6a6a;margin-top:8px;}
+
+/* CONTROLS */
+.controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.search-box{position:relative;flex:1;min-width:200px;max-width:420px;}
+.search-box input{width:100%;background:white;border:1.5px solid var(--border2);border-radius:10px;padding:10px 40px 10px 14px;color:var(--ink);font-family:'Literata',serif;font-size:14px;outline:none;box-shadow:0 2px 8px var(--shadow);transition:border-color 0.2s,box-shadow 0.2s;}
+.search-box input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,134,11,0.1);}
+.search-box input::placeholder{color:var(--muted2);font-style:italic;}
+.s-icon{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+.tab-grp{display:flex;gap:4px;background:var(--cream2);border:1.5px solid var(--border);border-radius:10px;padding:4px;box-shadow:0 2px 8px var(--shadow);}
+.tb{padding:7px 18px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:'Literata',serif;font-size:12.5px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.tb.on{background:white;color:var(--gold);border:1px solid var(--border2);box-shadow:0 2px 8px var(--shadow);}
+
+/* DETAIL */
+.detail{background:white;border:1.5px solid rgba(45,106,79,0.28);border-radius:var(--r);padding:22px 24px;margin-bottom:16px;display:none;box-shadow:0 4px 24px rgba(45,106,79,0.08);animation:fadeUp 0.25s ease;}
+.detail.show{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.d-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:16px;}
+.d-name{font-family:'Amiri',serif;font-size:24px;color:var(--ink);}
+.d-meta{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.8;font-style:italic;}
+.d-right{text-align:right;}
+.d-rank{font-family:'DM Mono',monospace;font-size:42px;color:var(--gold);line-height:1;}
+.d-rlbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.d-total{font-family:'DM Mono',monospace;font-size:20px;color:var(--green);margin-top:4px;}
+.close-x{background:var(--cream2);border:1px solid var(--border);border-radius:8px;padding:5px 13px;color:var(--muted);cursor:pointer;font:12px 'Literata',serif;transition:all 0.2s;margin-top:8px;}
+.close-x:hover{background:var(--cream3);color:var(--ink);}
+.d-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px;}
+.d-day{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.d-day-t{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.d-day-p{font-family:'DM Mono',monospace;font-size:22px;color:var(--green);}
+.d-day-m{font-size:11px;color:var(--muted2);margin-top:4px;line-height:1.6;font-style:italic;}
+.d-absent{opacity:0.4;}
+.aw{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 9px;border-radius:20px;margin-top:6px;letter-spacing:0.5px;}
+.aw-GOLD{background:#fffbf0;color:var(--gold);border:1px solid rgba(184,134,11,0.32);}
+.aw-SILVER{background:#f0f2f6;color:#5a6a80;border:1px solid rgba(100,120,150,0.28);}
+.aw-BRONZE{background:#fdf5ee;color:#8b5a2b;border:1px solid rgba(180,110,50,0.28);}
+.aw-APPRECIATION{background:var(--green-light);color:var(--green);border:1px solid rgba(45,106,79,0.22);}
+
+/* LEADERBOARD TABLE */
+.lb-wrap{background:white;border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 4px 20px var(--shadow);}
+.lb-head{display:grid;grid-template-columns:68px 1fr 130px 88px 100px;padding:11px 18px;font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:var(--cream2);border-bottom:1.5px solid var(--border);}
+.lb-row{display:grid;grid-template-columns:68px 1fr 130px 88px 100px;padding:13px 18px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;transition:background 0.15s;}
+.lb-row:last-child{border-bottom:none;}
+.lb-row:hover{background:var(--cream);}
+.lb-row.sel{background:rgba(45,106,79,0.05);border-left:3px solid var(--green2);}
+.lb-row.found{background:var(--gold-light);border-left:3px solid var(--gold);}
+.rk{font-family:'DM Mono',monospace;font-size:17px;color:var(--muted2);}
+.rk.r1{color:var(--gold);} .rk.r2{color:#5a6a80;} .rk.r3{color:#8b5a2b;}
+.pn{font-size:14px;font-weight:600;color:var(--ink);}
+.pc{font-size:11px;color:var(--muted);margin-top:2px;font-style:italic;}
+.dots{display:flex;gap:3px;flex-wrap:wrap;}
+.dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;transition:transform 0.15s;cursor:default;font-family:'DM Mono',monospace;}
+.dot:hover{transform:scale(1.25);}
+.dG{background:#fffbf0;color:var(--gold);border:1.5px solid rgba(184,134,11,0.38);}
+.dS{background:#f0f2f6;color:#5a6a80;border:1.5px solid rgba(100,120,150,0.28);}
+.dB{background:#fdf5ee;color:#8b5a2b;border:1.5px solid rgba(180,110,50,0.28);}
+.dA{background:var(--green-light);color:var(--green);border:1.5px solid rgba(45,106,79,0.22);}
+.dX{background:var(--cream2);color:var(--muted2);border:1.5px dashed var(--border);}
+.pts-v{font-family:'DM Mono',monospace;font-size:17px;color:var(--gold);text-align:right;font-weight:500;}
+.app-v{font-size:12px;color:var(--muted2);text-align:center;font-style:italic;}
+.more-wrap{padding:14px;text-align:center;background:var(--cream2);border-top:1px solid var(--border);}
+.more-btn{background:white;border:1.5px solid var(--border2);border-radius:8px;padding:8px 28px;color:var(--gold);font-family:'Literata',serif;font-size:13px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px var(--shadow);}
+.more-btn:hover{background:var(--gold-light);}
+
+/* DAY VIEW */
+#dayTab{display:none;}
+.dnav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.dnb{padding:7px 16px;border-radius:8px;border:1.5px solid var(--border);background:white;color:var(--muted);font-family:'Literata',serif;font-size:12.5px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px var(--shadow);}
+.dnb.on{background:var(--gold-light);border-color:var(--border2);color:var(--gold);font-weight:600;}
+.dtw{background:white;border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 4px 20px var(--shadow);}
+.dth{display:grid;grid-template-columns:60px 1fr 100px 90px 100px;padding:10px 16px;font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:var(--cream2);border-bottom:1.5px solid var(--border);}
+.dtr{display:grid;grid-template-columns:60px 1fr 100px 90px 100px;padding:11px 16px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;font-size:13px;transition:background 0.15s;}
+.dtr:hover{background:var(--cream);}
+.dtr:last-child{border-bottom:none;}
+.dinfo{font-size:11px;color:var(--muted);padding:10px 16px;background:var(--cream);border-bottom:1px solid var(--border);font-style:italic;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .ei{font-size:48px;margin-bottom:14px;}
+.empty-state p{font-size:14px;line-height:1.7;font-style:italic;}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;z-index:999;background:white;border-radius:12px;padding:12px 20px;font-size:13px;border:1.5px solid var(--border2);box-shadow:0 8px 32px var(--shadow2);transform:translateY(80px);opacity:0;transition:all 0.3s;}
+.toast.show{transform:none;opacity:1;}
+
+/* FOOTER */
+footer{background:var(--ink);color:var(--cream3);padding:40px 22px 32px;margin-top:60px;position:relative;overflow:hidden;}
+footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold3),var(--gold),var(--gold3),transparent);}
+.footer-inner{max-width:1100px;margin:0 auto;}
+.footer-top{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;flex-wrap:wrap;margin-bottom:28px;}
+.footer-brand h3{font-family:'Amiri',serif;font-size:20px;color:var(--gold2);margin-bottom:6px;}
+.footer-brand p{font-size:12px;color:var(--muted2);line-height:1.7;font-style:italic;max-width:320px;}
+.footer-dev{text-align:right;}
+.footer-dev .dev-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.footer-dev .dev-name{font-family:'Amiri',serif;font-size:24px;color:var(--cream2);margin-bottom:12px;}
+.social-links{display:flex;gap:10px;justify-content:flex-end;}
+.social-btn{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:24px;text-decoration:none;font-size:12.5px;font-family:'Literata',serif;font-weight:600;transition:all 0.25s;border:1px solid transparent;}
+.social-btn.instagram{background:linear-gradient(135deg,rgba(225,48,108,0.14),rgba(253,121,36,0.14));border-color:rgba(225,48,108,0.28);color:#f09898;}
+.social-btn.instagram:hover{background:linear-gradient(135deg,rgba(225,48,108,0.24),rgba(253,121,36,0.24));transform:translateY(-2px);box-shadow:0 6px 20px rgba(225,48,108,0.2);}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.07);padding-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-copy{font-size:11px;color:var(--muted);font-style:italic;}
+.footer-quran{font-family:'Amiri',serif;font-size:14px;color:rgba(212,160,23,0.55);direction:rtl;}
+
+/* RESPONSIVE */
+@media(max-width:720px){
+  .lb-head,.lb-row{grid-template-columns:52px 1fr 80px 80px;}
+  .lb-head .c-dots,.lb-row .c-dots{display:none;}
+  .dth,.dtr{grid-template-columns:52px 1fr 80px 80px;}
+  .dth .c-sc,.dtr .c-sc{display:none;}
+  .podium-3d{gap:8px;}
+  .p-card{width:150px;padding:14px 10px;}
+  .p-medal{font-size:28px;}
+  .p-pts{font-size:20px;}
+  .hof-grid{grid-template-columns:1fr;}
+  .footer-top{flex-direction:column;}
+  .footer-dev{text-align:left;}
+  .social-links{justify-content:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-crescent">☽</div>
+  <div class="loader-title">Loading Championship…</div>
+  <div class="loader-bar"><div class="loader-prog" id="loaderProg"></div></div>
+</div>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="site">
+
+<header>
+  <div class="hdr">
+    <div class="brand">
+      <div class="brand-emblem">☽</div>
+      <div>
+        <h1>Ramadan Quiz Championship 1446H</h1>
+        <div class="brand-sub">Inter-College · Official Live Leaderboard</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span class="live-dot"></span>
+      <div class="prog-pill">
+        <span id="dayLabel">Loading…</span>
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-arabic">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+    <h2 class="hero-title">The <span>Championship</span> Board</h2>
+    <p class="hero-sub">Ramadan Inter-College Quiz · 1446 Hijri · 2026</p>
+    <div class="hero-divider"><span>✦</span></div>
+  </div>
+</section>
+
+<div class="wrap">
+
+  <div class="stats-strip" id="statsStrip"></div>
+
+  <!-- PODIUM -->
+  <div class="podium-wrap">
+    <div class="sec-head">
+      <div class="sec-title"><span class="ornament">✦</span> Current Top 3 <span class="ornament">✦</span></div>
+      <div class="sec-sub">Leading the championship · click a card to see full profile</div>
+    </div>
+    <div class="podium-3d" id="podium"></div>
+  </div>
+
+  <!-- HALL OF FAME -->
+  <div class="sec-head">
+    <div class="sec-title"><span class="ornament">🏛</span> Hall of Fame <span class="ornament">🏛</span></div>
+    <div class="sec-sub">Special achievements and records across all days</div>
+  </div>
+  <div class="hof-grid" id="hofGrid"></div>
+
+  <div class="divider"><span>✦</span></div>
+
+  <!-- STANDINGS -->
+  <div style="margin-bottom:20px;">
+    <div class="sec-title"><span class="ornament">✦</span> Overall Standings</div>
+    <div class="sec-sub" style="margin-bottom:0">Cumulative rankings · search your name to find your position</div>
+  </div>
+
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search your name, ID or college…" oninput="onSearch()">
+      <span class="s-icon">⌕</span>
+    </div>
+    <div class="tab-grp">
+      <button class="tb on" onclick="switchTab('lb',this)">🏆 Standings</button>
+      <button class="tb" onclick="switchTab('day',this)">📅 Day by Day</button>
+    </div>
+  </div>
+
+  <div id="lbTab">
+    <div class="detail" id="detailLB"></div>
+    <div class="lb-wrap">
+      <div class="lb-head">
+        <div>Rank</div><div>Participant</div>
+        <div class="c-dots">Days</div>
+        <div style="text-align:center">Days</div>
+        <div style="text-align:right">Points</div>
+      </div>
+      <div id="lbBody"></div>
+    </div>
+    <div class="more-wrap" id="moreWrap" style="display:none;border:1.5px solid var(--border);border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
+      <button class="more-btn" onclick="loadMore()">Show More ↓</button>
+    </div>
+  </div>
+
+  <div id="dayTab">
+    <div class="detail" id="detailDay"></div>
+    <div class="dnav" id="dayNav"></div>
+    <div class="dtw">
+      <div class="dth">
+        <div>Rank</div><div>Participant</div>
+        <div class="c-sc" style="text-align:center">Score</div>
+        <div style="text-align:center">Award</div>
+        <div style="text-align:right">Pts</div>
+      </div>
+      <div id="dayBody"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>☽ Ramadan Quiz Championship 1446H</h3>
+        <p>An inter-college Ramadan quiz bringing together students to celebrate knowledge, speed, and the spirit of Ramadan. May Allah accept from all participants.</p>
+      </div>
+      <div class="footer-dev">
+        <div class="dev-label">Developed by</div>
+        <div class="dev-name">Mohammed Faraz</div>
+        <div class="social-links">
+          <a class="social-btn instagram" href="https://www.instagram.com/mohammed_farazzz/" target="_blank" rel="noopener">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+            @mohammed_farazzz
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 Ramadan Quiz Championship 1446H · All rights reserved</div>
+      <div class="footer-quran">رَمَضَانُ مُبَارَك</div>
+    </div>
+  </div>
+</footer>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL='https://uvqrulmstsjydtyxgsyl.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2cXJ1bG1zdHNqeWR0eXhnc3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NDIzNDQsImV4cCI6MjA4ODIxODM0NH0.aJny_49bJYc-Hj8KK7a1PbOLmc2MwvPwxJkCNTosHfU';
+
+// THREE.JS BACKGROUND — warm golden particles & rings
+(function(){
+  const canvas=document.getElementById('bg-canvas');
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
+  camera.position.z=30;
+  function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+  resize(); window.addEventListener('resize',resize);
+  const geo=new THREE.BufferGeometry();
+  const N=700, pos=new Float32Array(N*3), col=new Float32Array(N*3);
+  const cs=[[0.72,0.53,0.04],[0.85,0.63,0.05],[0.18,0.42,0.31],[0.6,0.38,0.1]];
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-.5)*120;pos[i*3+1]=(Math.random()-.5)*70;pos[i*3+2]=(Math.random()-.5)*40-10;
+    const c=cs[i%cs.length]; col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2];
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  scene.add(new THREE.Points(geo,new THREE.PointsMaterial({size:0.15,vertexColors:true,transparent:true,opacity:0.35})));
+  const rings=[];
+  [[0xd4a017,0.055],[0x2d6a4f,0.04],[0xb8860b,0.05],[0x40916c,0.03]].forEach(([c,o],i)=>{
+    const m=new THREE.Mesh(new THREE.TorusGeometry(7+i*3.5,0.022,8,90),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o}));
+    m.rotation.x=Math.random()*Math.PI;m.rotation.y=Math.random()*Math.PI;
+    m.position.set((Math.random()-.5)*18,(Math.random()-.5)*14,-15-i*4);
+    scene.add(m);rings.push({m,rx:0.0002+Math.random()*0.0004,ry:0.0002+Math.random()*0.0004});
+  });
+  (function animate(){requestAnimationFrame(animate);rings.forEach(r=>{r.m.rotation.x+=r.rx;r.m.rotation.y+=r.ry;});renderer.render(scene,camera);})();
+})();
+
+// STATE
+let participants=[],daysAvail=0,daySummaries={};
+let displayCount=50,searchQ='',selectedId=null,currentDay=1;
+
+async function sbGet(path){
+  const r=await fetch(SUPA_URL+path,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+  return r.json();
+}
+
+async function loadData(){
+  setLoader(20);
+  const rows=await sbGet('/rest/v1/scores?select=*&order=day,rank');
+  setLoader(60);
+  if(!rows||rows.error||rows.length===0){
+    hideLoader();
+    ['lbBody','podium','statsStrip','hofGrid'].forEach(id=>{
+      document.getElementById(id).innerHTML=id==='lbBody'?
+        `<div class="empty-state"><div class="ei">☽</div><p>No results yet.<br><em>Check back once the first day is uploaded.</em></p></div>`:'';
+    });
+    return;
+  }
+  const map={},days=new Set(),dayCounts={};
+  rows.forEach(r=>{
+    days.add(r.day);
+    if(!dayCounts[r.day]) dayCounts[r.day]={total:r.total_in_day,date:r.timestamp_str?r.timestamp_str.substring(0,11):''};
+    const key=r.registration_id;
+    if(!map[key]) map[key]={name:r.name,id:r.registration_id,college:r.college,total_pts:0,days_appeared:0,days:{}};
+    map[key].total_pts+=r.daily_pts;
+    map[key].days_appeared++;
+    map[key].days[String(r.day)]={rank:r.rank,daily_pts:r.daily_pts,score:r.score,award:r.award,ts:r.timestamp_str,total_in_day:r.total_in_day};
+  });
+  participants=Object.values(map).sort((a,b)=>b.total_pts-a.total_pts);
+  participants.forEach((p,i)=>p.overall_rank=i+1);
+  daysAvail=Math.max(...[...days]);
+  daySummaries=dayCounts;
+  setLoader(85);
+  updateHeader(); renderStats(); renderPodium();
+  renderHallOfFame(rows); renderLB(); buildDayNav(); renderDayView(daysAvail);
+  document.querySelectorAll('.dnb').forEach(b=>b.classList.remove('on'));
+  const lb=document.querySelector(`.dnb[data-day="${daysAvail}"]`);
+  if(lb){lb.classList.add('on');currentDay=daysAvail;}
+  setLoader(100); setTimeout(hideLoader,500);
+}
+
+function setLoader(p){document.getElementById('loaderProg').style.width=p+'%';}
+function hideLoader(){document.getElementById('loader').classList.add('hide');}
+function updateHeader(){
+  document.getElementById('dayLabel').textContent=`Days 1–${daysAvail} of 27`;
+  document.getElementById('progFill').style.width=(daysAvail/27*100)+'%';
+}
+
+function renderStats(){
+  const top=participants[0]||{total_pts:0,name:'—'};
+  const full=participants.filter(p=>p.days_appeared===daysAvail).length;
+  document.getElementById('statsStrip').innerHTML=`
+    <div class="stat-card"><div class="stat-l">Participants</div><div class="stat-v">${participants.length}</div><div class="stat-s">unique contestants</div></div>
+    <div class="stat-card"><div class="stat-l">Days Done</div><div class="stat-v">${daysAvail}</div><div class="stat-s">of 27 total</div></div>
+    <div class="stat-card"><div class="stat-l">Full Streak</div><div class="stat-v">${full}</div><div class="stat-s">all ${daysAvail} days</div></div>
+    <div class="stat-card"><div class="stat-l">Leader</div><div class="stat-v">${top.total_pts}</div><div class="stat-s">${top.name.split(' ').slice(0,2).join(' ')}</div></div>`;
+}
+
+function renderPodium(){
+  const top=participants.slice(0,3);
+  const medals=['🥇','🥈','🥉'],gc=['g1','g2','g3'],lbl=['1ST','2ND','3RD'];
+  const order=[1,0,2];
+  document.getElementById('podium').innerHTML=order.map(i=>{
+    const p=top[i];if(!p)return'';
+    return`<div class="p-block ${gc[i]}" onclick="showDetail('${p.id}','lb')">
+      <div class="p-card">
+        <div class="p-medal">${medals[i]}</div>
+        <div class="p-pos">${lbl[i]} PLACE</div>
+        <div class="p-name">${p.name}</div>
+        <div class="p-college">${(p.college||'').substring(0,34)}</div>
+        <div class="p-pts">${p.total_pts}</div>
+        <div class="p-ptslbl">total points</div>
+      </div>
+      <div class="p-plinth"></div>
+    </div>`;
+  }).join('');
+}
+
+function renderHallOfFame(rows){
+  const stats={};
+  const ensure=(id,name,college)=>{if(!stats[id])stats[id]={id,name,college,rank1:0,rank2:0,rank3:0,top10:0,podium:0};};
+  rows.forEach(r=>{
+    ensure(r.registration_id,r.name,r.college);
+    const s=stats[r.registration_id];
+    if(r.rank===1)s.rank1++;
+    if(r.rank===2)s.rank2++;
+    if(r.rank===3)s.rank3++;
+    if(r.rank<=10)s.top10++;
+    if(r.rank<=3)s.podium++;
+  });
+  const all=Object.values(stats);
+  const top5=(arr,key)=>[...arr].sort((a,b)=>b[key]-a[key]).filter(x=>x[key]>0).slice(0,5);
+
+  // Fastest perfect score
+  const perfect=rows.filter(r=>r.score===1.0&&r.timestamp_str);
+  let fastest=null,fastSecs=Infinity;
+  perfect.forEach(r=>{
+    try{
+      const ts=r.timestamp_str;
+      const match=ts.match(/(\d{2}) (\w{3}) (\d{4}), (\d{2}):(\d{2}):(\d{2}) (AM|PM)/);
+      if(!match)return;
+      const mo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+      let h=parseInt(match[4]);
+      if(match[7]==='PM'&&h!==12)h+=12;
+      if(match[7]==='AM'&&h===12)h=0;
+      const dt=new Date(match[3],mo[match[2]],parseInt(match[1]),h,parseInt(match[5]),parseInt(match[6]));
+      const base=new Date(dt);base.setHours(5);base.setMinutes(20);base.setSeconds(0);
+      const secs=Math.round((dt-base)/1000);
+      if(secs>0&&secs<fastSecs){fastSecs=secs;fastest=r;}
+    }catch(e){}
+  });
+
+  function hofList(data,key,cls=''){
+    if(!data.length)return`<div style="font-size:12px;color:var(--muted2);font-style:italic;padding:8px 0">No data yet</div>`;
+    return data.map((p,i)=>`
+      <div class="hof-item" onclick="jumpToParticipant('${p.id}')">
+        <div class="hof-rank ${i<3?'r'+(i+1):''}">${['🥇','🥈','🥉'][i]||'#'+(i+1)}</div>
+        <div><div class="hof-name">${p.name}</div><div class="hof-college">${(p.college||'').substring(0,38)}</div></div>
+        <div class="hof-count ${cls}">${p[key]}×</div>
+      </div>`).join('');
+  }
+
+  const fmtSecs=s=>{const m=Math.floor(s/60),sec=s%60;return m?`${m}m ${sec}s`:`${s}s`;};
+
+  document.getElementById('hofGrid').innerHTML=`
+    <div class="hof-card hof-gold">
+      <div class="hof-header"><span class="hof-icon">🥇</span><div><div class="hof-title">Most 1st Places</div><div class="hof-desc">Ranked #1 the most days</div></div></div>
+      <div class="hof-list">${hofList(top5(all,'rank1'),'rank1')}</div>
+    </div>
+    <div class="hof-card hof-silver">
+      <div class="hof-header"><span class="hof-icon">🥈</span><div><div class="hof-title">Most 2nd Places</div><div class="hof-desc">Ranked #2 the most days</div></div></div>
+      <div class="hof-list">${hofList(top5(all,'rank2'),'rank2')}</div>
+    </div>
+    <div class="hof-card hof-bronze">
+      <div class="hof-header"><span class="hof-icon">🥉</span><div><div class="hof-title">Most 3rd Places</div><div class="hof-desc">Ranked #3 the most days</div></div></div>
+      <div class="hof-list">${hofList(top5(all,'rank3'),'rank3')}</div>
+    </div>
+    <div class="hof-card hof-green">
+      <div class="hof-header"><span class="hof-icon">🔟</span><div><div class="hof-title">Most Top 10 Finishes</div><div class="hof-desc">Most days inside the top 10</div></div></div>
+      <div class="hof-list">${hofList(top5(all,'top10'),'top10','green')}</div>
+    </div>
+    <div class="hof-card hof-silver">
+      <div class="hof-header"><span class="hof-icon">🏛</span><div><div class="hof-title">Most Podium Finishes</div><div class="hof-desc">Most days finishing 1st, 2nd or 3rd</div></div></div>
+      <div class="hof-list">${hofList(top5(all,'podium'),'podium','green')}</div>
+    </div>
+    <div class="hof-card hof-fast">
+      <div class="hof-header"><span class="hof-icon">⚡</span><div><div class="hof-title">Fastest Perfect Answer</div><div class="hof-desc">10/10 correct · earliest ever submission</div></div></div>
+      ${fastest?`
+        <div class="fastest-display">
+          <div class="fastest-name">${fastest.name}</div>
+          <div class="fastest-college">${fastest.college||'—'}</div>
+          <div class="fastest-time">${fmtSecs(fastSecs)}</div>
+          <div class="fastest-lbl">after quiz opened</div>
+          <div class="fastest-meta">Submitted at ${fastest.timestamp_str.split(', ')[1]||'—'} · Day ${fastest.day} · 10/10 correct</div>
+          <div class="fastest-badge">⚡ Perfect Score · Fastest Submission</div>
+        </div>`:`<div style="font-size:12px;color:var(--muted2);font-style:italic;padding:8px">No perfect scores recorded yet</div>`}
+    </div>`;
+}
+
+function renderLB(){
+  const list=getFiltered(),show=list.slice(0,displayCount);
+  const dMap={GOLD:'dG',SILVER:'dS',BRONZE:'dB',APPRECIATION:'dA'};
+  document.getElementById('lbBody').innerHTML=show.length?show.map(p=>{
+    const rk=p.overall_rank,rkc=rk<=3?'r'+rk:'';
+    const rc=p.id===selectedId?'sel':searchQ&&list.includes(p)?'found':'';
+    const dots=Array.from({length:daysAvail},(_,i)=>{
+      const d=p.days[String(i+1)];
+      if(d)return`<div class="dot ${dMap[d.award]||'dA'}" title="Day ${i+1} · ${d.award} · Rank #${d.rank} · +${d.daily_pts} pts">${i+1}</div>`;
+      return`<div class="dot dX" title="Day ${i+1} · absent">–</div>`;
+    }).join('');
+    return`<div class="lb-row ${rc}" onclick="showDetail('${p.id}','lb')">
+      <div class="rk ${rkc}">#${rk}</div>
+      <div><div class="pn">${p.name}</div><div class="pc">${(p.college||'—').substring(0,40)}</div></div>
+      <div class="c-dots"><div class="dots">${dots}</div></div>
+      <div class="app-v">${p.days_appeared}/${daysAvail}</div>
+      <div class="pts-v">${p.total_pts}</div>
+    </div>`;
+  }).join(''):`<div class="empty-state"><div class="ei">🔍</div><p>No results for "<strong>${searchQ}</strong>"<br><em>Try your full name or registration ID.</em></p></div>`;
+  document.getElementById('moreWrap').style.display=list.length>displayCount?'block':'none';
+}
+
+function getFiltered(){
+  if(!searchQ)return participants;
+  const q=searchQ.toLowerCase();
+  return participants.filter(p=>p.name.toLowerCase().includes(q)||(p.id||'').toLowerCase().includes(q)||(p.college||'').toLowerCase().includes(q));
+}
+function loadMore(){displayCount+=50;renderLB();}
+function onSearch(){searchQ=document.getElementById('searchInput').value.trim();displayCount=50;selectedId=null;closeDetail('lb');renderLB();}
+
+function showDetail(id,panel){
+  const p=participants.find(x=>x.id===id);if(!p)return;
+  selectedId=id;if(panel==='lb')renderLB();
+  const daysHtml=Array.from({length:daysAvail},(_,i)=>{
+    const d=p.days[String(i+1)];
+    if(d)return`<div class="d-day">
+      <div class="d-day-t">Day ${i+1}</div>
+      <div class="d-day-p">+${d.daily_pts}</div>
+      <div class="d-day-m">Rank #${d.rank} of ${d.total_in_day}<br>Score: ${(d.score*100).toFixed(0)}%<br>${d.ts?d.ts.split(', ')[1]||'—':'—'}</div>
+      <span class="aw aw-${d.award}">${d.award}</span>
+    </div>`;
+    return`<div class="d-day d-absent"><div class="d-day-t">Day ${i+1}</div><div style="font-size:22px;color:var(--muted);margin:8px 0">—</div><div class="d-day-m">Did not participate</div></div>`;
+  }).join('');
+  const el=document.getElementById(panel==='day'?'detailDay':'detailLB');
+  el.innerHTML=`<div class="d-head">
+    <div>
+      <div class="d-name">${p.name}</div>
+      <div class="d-meta">📍 ${p.college||'—'}<br>🆔 ${p.id} · ${p.days_appeared}/${daysAvail} days attended</div>
+    </div>
+    <div class="d-right">
+      <div class="d-rank">#${p.overall_rank}</div>
+      <div class="d-rlbl">Overall Rank</div>
+      <div class="d-total">${p.total_pts} pts</div>
+      <button class="close-x" onclick="closeDetail('${panel}')">✕ Close</button>
+    </div>
+  </div>
+  <div class="d-days">${daysHtml}</div>`;
+  el.classList.add('show');
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function jumpToParticipant(id){
+  // Switch to standings tab and show detail
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.tb').classList.add('on');
+  document.getElementById('lbTab').style.display='block';
+  document.getElementById('dayTab').style.display='none';
+  showDetail(id,'lb');
+  setTimeout(()=>document.getElementById('detailLB').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+function closeDetail(panel){
+  selectedId=null;
+  document.getElementById(panel==='day'?'detailDay':'detailLB').classList.remove('show');
+  if(panel==='lb')renderLB();
+}
+
+function buildDayNav(){
+  document.getElementById('dayNav').innerHTML=Object.keys(daySummaries).sort((a,b)=>+a-+b).map(d=>
+    `<button class="dnb" data-day="${d}" onclick="setDay(${d},this)">Day ${d}</button>`
+  ).join('');
+}
+
+function setDay(d,el){
+  currentDay=d;
+  document.querySelectorAll('.dnb').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');closeDetail('day');renderDayView(d);
+}
+
+function renderDayView(day){
+  const entries=participants.filter(p=>p.days[String(day)]).map(p=>({...p.days[String(day)],name:p.name,college:p.college,id:p.id})).sort((a,b)=>a.rank-b.rank).slice(0,100);
+  const ds=daySummaries[String(day)]||{};
+  document.getElementById('dayBody').innerHTML=
+    `<div class="dinfo">Day ${day} · ${ds.total||entries.length} participants · Top 100 shown · Click any row for full profile</div>`+
+    entries.map(e=>`<div class="dtr" onclick="showDetail('${e.id}','day')">
+      <div class="rk ${e.rank<=3?'r'+e.rank:''}">#${e.rank}</div>
+      <div><div class="pn" style="font-size:13px">${e.name}</div><div class="pc">${(e.college||'—').substring(0,38)}</div></div>
+      <div class="c-sc" style="text-align:center;font-size:12px;color:var(--muted2)">${(e.score*100).toFixed(0)}%</div>
+      <div style="text-align:center"><span class="aw aw-${e.award}">${e.award}</span></div>
+      <div class="pts-v" style="font-size:14px">+${e.daily_pts}</div>
+    </div>`).join('');
+}
+
+function switchTab(tab,el){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+  document.getElementById('lbTab').style.display=tab==='lb'?'block':'none';
+  document.getElementById('dayTab').style.display=tab==='day'?'block':'none';
+}
+
+loadData();
+</script>
+</body>
+</html>
