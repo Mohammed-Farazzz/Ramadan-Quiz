@@ -249,7 +249,7 @@ async function doUpload() {
     log(`✅ Found ${totalParticipants} participants in file`, 'ok');
 
     // Build records
-    const records = validRows.map(row => ({
+    const rawRecords = validRows.map(row => ({
       registration_id: String(row[ii] || '').trim(),
       name: String(row[ni] || '').trim(),
       college: String(row[ci] || '').trim(),
@@ -262,8 +262,27 @@ async function doUpload() {
       total_in_day: totalParticipants
     }));
 
+    // Remove rows with no registration_id (cannot upsert reliably)
+    const withIds = rawRecords.filter(r => r.registration_id);
+
+    // Within this file, keep only one row per (registration_id, day).
+    // If there are duplicates, keep the better rank (smaller rank number).
+    const dedupMap = new Map();
+    for (const r of withIds) {
+      const key = `${r.registration_id}|${r.day}`;
+      const existing = dedupMap.get(key);
+      if (!existing || r.rank < existing.rank) {
+        dedupMap.set(key, r);
+      }
+    }
+    const records = Array.from(dedupMap.values());
+    const skipped = rawRecords.length - records.length;
+
     // Upsert in batches of 200 (handles duplicates automatically — safe to re-upload)
     log(`📤 Uploading ${records.length} records (upsert)…`, 'inf');
+    if (skipped > 0) {
+      log(`ℹ️ Skipped ${skipped} duplicated / missing-ID rows within this file (kept best rank per registration ID).`, 'inf');
+    }
     const BATCH = 200;
     let uploaded = 0;
     for (let i = 0; i < records.length; i += BATCH) {
@@ -335,4 +354,3 @@ loadDaysStatus();
 </script>
 </body>
 </html>
-
