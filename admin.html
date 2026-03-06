@@ -6,11 +6,19 @@
 <title>Admin — Ramadan Quiz Uploader</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #07090f; --panel: #0e1220; --border: rgba(255,255,255,0.08);
-  --gold: #d4a843; --gold2: #f0c96a; --teal: #0fa897; --teal2: #13d4be;
-  --red: #e05555; --green: #2ebd7a;
-  --text: #ddd8ce; --muted: #6a6858;
+:root{
+  --bg:#faf6ef; --panel:#ffffff; --border:rgba(184,134,11,0.18);
+  --gold:#b8860b; --gold2:#d4a017; --teal:#2d6a4f; --teal2:#40916c;
+  --red:#9b2226; --green:#2d6a4f;
+  --text:#1a1208; --muted:#8a7a62;
+  --shadow:rgba(26,18,8,0.10);
+}
+[data-theme="dark"]{
+  --bg:#07090f; --panel:#0e1220; --border:rgba(255,255,255,0.08);
+  --gold:#d4a843; --gold2:#f0c96a; --teal:#0fa897; --teal2:#13d4be;
+  --red:#e05555; --green:#2ebd7a;
+  --text:#ddd8ce; --muted:#7f8ea3;
+  --shadow:rgba(0,0,0,0.45);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:40px 20px; }
@@ -21,6 +29,7 @@ h1 { font-size:22px; color:var(--gold); margin-bottom:4px; letter-spacing:0.5px;
 .card {
   background:var(--panel); border:1px solid var(--border); border-radius:16px;
   padding:28px 32px; width:100%; max-width:560px; margin-bottom:20px;
+  box-shadow:0 10px 26px var(--shadow);
 }
 .card h2 { font-size:14px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:18px; }
 
@@ -90,6 +99,18 @@ h1 { font-size:22px; color:var(--gold); margin-bottom:4px; letter-spacing:0.5px;
 }
 .danger-btn:hover { background:rgba(224,85,85,0.08); }
 
+.top-actions{display:flex;gap:10px;align-items:center;justify-content:center;margin:10px 0 18px;flex-wrap:wrap;}
+.theme-btn{background:transparent;border:1px solid var(--border);border-radius:999px;padding:8px 14px;color:var(--gold);cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;font-size:12px;letter-spacing:.2px;}
+.theme-btn:hover{background:rgba(212,168,67,0.06);}
+.pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--muted);}
+
+.auth-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.auth-row input{flex:1;min-width:180px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);outline:none;}
+.auth-row input:focus{border-color:rgba(212,168,67,0.5);}
+.auth-btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;}
+.auth-btn:disabled{opacity:.55;cursor:not-allowed;}
+.auth-meta{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6;}
+
 .link-box {
   background:rgba(212,168,67,0.06); border:1px solid rgba(212,168,67,0.2);
   border-radius:10px; padding:12px 16px; font-family:'DM Mono',monospace;
@@ -102,8 +123,28 @@ h1 { font-size:22px; color:var(--gold); margin-bottom:4px; letter-spacing:0.5px;
 <h1>☽ Quiz Admin</h1>
 <div class="sub">Ramadan Quiz 1446H · Data Uploader</div>
 
+<div class="top-actions">
+  <button class="theme-btn" id="themeBtn" type="button">🌙 Dark</button>
+  <span class="pill" id="authPill">🔒 Locked</span>
+</div>
+
+<!-- AUTH CARD -->
+<div class="card" id="authCard">
+  <h2>Admin Login</h2>
+  <div style="font-size:13px;color:var(--muted);line-height:1.7">
+    Enter the admin username and password to upload/delete results.
+  </div>
+  <div class="auth-row">
+    <input id="username" type="text" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button class="auth-btn" id="loginBtn" type="button" onclick="doLogin()">Login</button>
+  </div>
+  <div class="auth-meta" id="authMsg"></div>
+  <button class="danger-btn" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
+</div>
+
 <!-- UPLOAD CARD -->
-<div class="card">
+<div class="card" id="uploadCard" style="display:none">
   <h2>Upload Day Results</h2>
 
   <div class="drop-zone" id="dropZone">
@@ -154,6 +195,79 @@ h1 { font-size:22px; color:var(--gold); margin-bottom:4px; letter-spacing:0.5px;
 const SUPABASE_URL = 'https://uvqrulmstsjydtyxgsyl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2cXJ1bG1zdHNqeWR0eXhnc3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NDIzNDQsImV4cCI6MjA4ODIxODM0NH0.aJny_49bJYc-Hj8KK7a1PbOLmc2MwvPwxJkCNTosHfU';
 
+// Theme
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('themeBtn');
+  if(btn) btn.textContent = (t === 'dark') ? '☀️ Light' : '🌙 Dark';
+}
+applyTheme(localStorage.getItem('rq_theme') || 'light');
+document.getElementById('themeBtn')?.addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = (cur === 'dark') ? 'light' : 'dark';
+  localStorage.setItem('rq_theme', next);
+  applyTheme(next);
+});
+
+// Dummy admin login (UI-only protection; not secure against viewing source)
+const ADMIN_USERNAME = 'mohammed_farazzz';
+const ADMIN_PASSWORD = 'Patelfaraz125';
+const AUTH_KEY = 'rq_admin_authed';
+
+function isAuthed(){ return localStorage.getItem(AUTH_KEY) === '1'; }
+
+function setAuthed(on){
+  document.getElementById('uploadCard').style.display = on ? 'block' : 'none';
+  document.getElementById('logoutBtn').style.display = on ? 'inline-block' : 'none';
+  document.getElementById('authPill').textContent = on ? '✅ Unlocked' : '🔒 Locked';
+  document.getElementById('authMsg').textContent = on ? 'You can upload and delete days now.' : '';
+}
+
+function initAuth(){
+  const ok = isAuthed();
+  setAuthed(ok);
+  if (ok) loadDaysStatus();
+}
+async function doLogin(){
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  document.getElementById('authMsg').textContent = '';
+  document.getElementById('loginBtn').disabled = true;
+  try{
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) throw new Error('Invalid credentials');
+    localStorage.setItem(AUTH_KEY, '1');
+    setAuthed(true);
+    loadDaysStatus();
+  } catch(e){
+    document.getElementById('authMsg').textContent = '❌ ' + (e.message || 'Login failed');
+  }
+  document.getElementById('loginBtn').disabled = false;
+}
+async function doLogout(){
+  localStorage.removeItem(AUTH_KEY);
+  setAuthed(false);
+}
+function requireAuth(){
+  if(!isAuthed()) throw new Error('Locked. Please login first.');
+}
+
+// ── SUPABASE API (REST) ──
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || '',
+      ...opts.headers
+    }
+  });
+  const text = await res.text();
+  try { return { ok: res.ok, status: res.status, data: JSON.parse(text) }; }
+  catch { return { ok: res.ok, status: res.status, data: text }; }
+}
+
 let selectedFile = null;
 
 // ── FILE SELECT ──
@@ -192,26 +306,10 @@ function clearLog() {
   el.classList.remove('show');
 }
 
-// ── SUPABASE API ──
-async function sbFetch(path, opts = {}) {
-  const res = await fetch(SUPABASE_URL + path, {
-    ...opts,
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': opts.prefer || '',
-      ...opts.headers
-    }
-  });
-  const text = await res.text();
-  try { return { ok: res.ok, status: res.status, data: JSON.parse(text) }; }
-  catch { return { ok: res.ok, status: res.status, data: text }; }
-}
-
 // ── MAIN UPLOAD ──
 async function doUpload() {
   if (!selectedFile) return;
+  requireAuth();
   const day = parseInt(document.getElementById('dayNum').value);
   if (!day || day < 1 || day > 27) { alert('Please enter a valid day number (1–27)'); return; }
 
@@ -293,10 +391,7 @@ async function doUpload() {
         headers: { 'Prefer': 'return=minimal,resolution=merge-duplicates' },
         body: JSON.stringify(batch)
       });
-      if (!res.ok) {
-        log(`❌ Batch error: ${JSON.stringify(res.data)}`, 'err');
-        return;
-      }
+      if (!res.ok) { log(`❌ Batch error: ${JSON.stringify(res.data)}`, 'err'); return; }
       uploaded += batch.length;
       log(`📤 Uploaded ${uploaded} / ${records.length} rows…`, 'inf');
     }
@@ -332,7 +427,10 @@ async function loadDaysStatus() {
   const MAX_DAYS = 27;
 
   try {
-    // Fetch per-day to avoid the 1000-row-per-request limit on Supabase REST.
+    if(!isAuthed()){
+      document.getElementById('daysLoaded').innerHTML = '<span style="color:var(--muted);font-size:12px">Login to view status</span>';
+      return;
+    }
     const dayPromises = [];
     for (let d = 1; d <= MAX_DAYS; d++) {
       dayPromises.push(sbFetch(`/rest/v1/scores?select=day&day=eq.${d}`));
@@ -361,6 +459,7 @@ async function loadDaysStatus() {
 
 // ── DELETE DAY ──
 async function deleteDayPrompt() {
+  requireAuth();
   const day = prompt('Enter day number to delete (1–27):');
   if (!day || isNaN(day)) return;
   if (!confirm(`Delete ALL data for Day ${day}? This cannot be undone.`)) return;
@@ -370,7 +469,7 @@ async function deleteDayPrompt() {
 }
 
 // Init
-loadDaysStatus();
+initAuth();
 </script>
 </body>
 </html>
