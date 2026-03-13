@@ -457,10 +457,10 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
         max-width: 580px;
         background: rgba(255, 255, 255, 0.04);
       ">
-        ⚠️ <strong>Note:</strong> Scores and rankings may be inaccurate since this Website is not officially developed by the EPL team.
+        ⚠️ <strong>Note:</strong> Scores and rankings may be inaccurate since this site is not officially developed by the EPL team.
       </div>
       <div style="font-size: 0.78rem; color: rgba(255, 255, 255, 0.45);">
-        For any queries, Please visit my Portfolio
+        For queries, Please visit my Portfolio
       </div>
     </div>
 
@@ -470,7 +470,6 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
     </div>
   </div>
 </footer>
-
 </div>
 <div class="toast" id="toast"></div>
 
@@ -648,7 +647,12 @@ function renderHallOfFame(rows){
 
       const base = new Date(dt);
       base.setHours(5);
-      base.setMinutes((r.day >= 12) ? 15 : 20);
+      // Quiz opening time rules:
+      // - Days 1–11: 05:20
+      // - Days 12–19: 05:15
+      // - Days 20+: 05:10
+      const openMin = (r.day >= 20) ? 10 : (r.day >= 12 ? 15 : 20);
+      base.setMinutes(openMin);
       base.setSeconds(0);
       const secs = Math.round((dt - base) / 1000);
       if (secs > 0 && secs < 60 * 60) {
